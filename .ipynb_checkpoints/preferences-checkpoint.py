@@ -1,8 +1,4 @@
-from rows import extract_rows
 from random import randint
-
-rows = extract_rows(2)
-
 
 def format_preferences(user):
     likes = []
