@@ -1,7 +1,7 @@
 # Product Recommender Model Based on LLM
 
 ## Overview
-This repository contains work for a research project exploring a product recommender model using a Langchain (LLM).
+This repository contains work for a research project exploring an interperetable product recommender model using fine-tuned LLMs.
 
 ## Directory Structure
 - `data/`: Directory storing formatted data used by the model.
