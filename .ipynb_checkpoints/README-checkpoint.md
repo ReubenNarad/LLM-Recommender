@@ -5,9 +5,6 @@ This repository contains work for a research project exploring product recommend
 
 ## Directory Structure
 - `data/`: Directory storing formatted data used by the model.
-- `src/`: Code used in data formatting and requesting models.
-    - `src/tools`: Utility functions used in main notebooks
-
-
-## Note
-This repository is a part of research work and is not currently seeking contributions.
+- `src/`
+    - `preprocess_data`: Formats 
+    - 

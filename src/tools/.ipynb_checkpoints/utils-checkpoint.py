@@ -1,6 +1,9 @@
 import json
 from random import sample
 from random import randint
+from sklearn.metrics import f1_score, recall_score, precision_score, roc_auc_score
+
+# NOTE: format_preferences() truncates reviews to 1000 characters and history to 6 reviews.
 
 def format_preferences(user, threshold: int = 4):
     """
@@ -14,27 +17,33 @@ def format_preferences(user, threshold: int = 4):
     - dict: Contains lists of 'likes' and 'dislikes', the 'target' review title, and 'truth' as a boolean.
     """
     
-    likes, dislikes = [], []
+    likes, dislikes, history = [], [], []
     reviews = list(user.values())[0]
     num_reviews = len(reviews)
 
     # Randomly select a target review to use as ground truth
     target = reviews.pop(randint(0, num_reviews - 1))
+    target_description = target['description']
     truth = target['overall'] >= threshold  # Boolean indicating if target review is a 'like'
     target_title = target['title']
     
     # Categorize remaining reviews based on threshold
-    for review in reviews:
+    for i, review in enumerate(reviews):
         if review['overall'] >= threshold:
             likes.append(review['title'])
         else:
             dislikes.append(review['title'])
+        
+        if i > num_reviews - 8:
+            history.append(f"Title: {review['title']}, Stars: {review['overall']}/5, Review Text: {review['reviewText'][:1000]}")
     
     return {
         'likes': likes,
         'dislikes': dislikes,
         'target': target_title,
-        'truth': truth
+        'target_description': target_description,
+        'truth': truth,
+        'history': history
     }
 
 def extract_rows(num_rows: int, data_path: str):
@@ -54,6 +63,34 @@ def extract_rows(num_rows: int, data_path: str):
         lines = [json.loads(line) for line in file]
 
     # Retrieve 'num_rows' entries randomly from the list of lines
-    extracted_rows = sample(lines, num_rows)
+    extracted_rows = lines[:num_rows]
 
     return extracted_rows
+
+def evaluate(results):
+    # Assuming 'pred' and 'truth' are lists of predicted and ground truth labels respectively
+    predictions = [result['pred'] for result in results]
+    ground_truth = [result['truth'] for result in results]
+
+    # Calculate F1 score
+    f1 = f1_score(ground_truth, predictions)
+
+    # Calculate recall
+    recall = recall_score(ground_truth, predictions)
+
+    # Calculate precision
+    precision = precision_score(ground_truth, predictions)
+
+    # Calculate ROC AUC
+    try:
+        roc_auc = roc_auc_score(ground_truth, predictions)
+    except Exception as e:
+        print(e)
+        roc_auc = None
+
+    # Print or use the calculated metrics
+    print(f"F1 Score: {f1}")
+    print(f"Recall: {recall}")
+    print(f"Precision: {precision}")
+    print(f"ROC AUC: {roc_auc}")
+    return f1, recall, precision, roc_auc
