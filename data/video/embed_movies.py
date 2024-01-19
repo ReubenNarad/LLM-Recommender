@@ -1,20 +1,26 @@
+# Adds movie product descriptions to Chroma vectorstore, for similarity search
+
 import json
 from langchain.vectorstores import Chroma
 from langchain_community.vectorstores.chroma import Document
 from langchain.embeddings import OpenAIEmbeddings
 import chromadb
 from tqdm import tqdm
+from dotenv import load_dotenv
+import os
+import threading
+from queue import Queue
 
-# Set up the Chroma vectorstore
-openai_api_key = "sYOUR_API_KEY"
+# Load api key
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+# Set up vector store
 embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
 db = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
 
+# Movie data path
 metadata_file = 'meta_Movies_and_TV.json'     
-
-import json
-import threading
-from queue import Queue
 
 def worker(input_queue, db_lock):
     while True:

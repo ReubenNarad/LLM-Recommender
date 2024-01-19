@@ -67,23 +67,20 @@ def extract_rows(num_rows: int, data_path: str):
 
     return extracted_rows
 
-def evaluate(results):
-    # Assuming 'pred' and 'truth' are lists of predicted and ground truth labels respectively
-    predictions = [result['pred'] for result in results]
-    ground_truth = [result['truth'] for result in results]
+def evaluate(pred, truth):
 
     # Calculate F1 score
-    f1 = f1_score(ground_truth, predictions)
+    f1 = f1_score(truth, pred)
 
     # Calculate recall
-    recall = recall_score(ground_truth, predictions)
+    recall = recall_score(truth, pred)
 
     # Calculate precision
-    precision = precision_score(ground_truth, predictions)
+    precision = precision_score(truth, pred)
 
     # Calculate ROC AUC
     try:
-        roc_auc = roc_auc_score(ground_truth, predictions)
+        roc_auc = roc_auc_score(truth, pred)
     except Exception as e:
         print(e)
         roc_auc = None
@@ -94,3 +91,4 @@ def evaluate(results):
     print(f"Precision: {precision}")
     print(f"ROC AUC: {roc_auc}")
     return f1, recall, precision, roc_auc
+

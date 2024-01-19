@@ -1,43 +1,40 @@
-from langchain.chat_models import ChatOpenAI
 import sys
 sys.path.append('tools')
 from utils import *
 import openai_chains
-import concurrent.futures
-import csv
-import os
+
+import concurrent.futures, csv, os
 from tqdm import tqdm
 from time import sleep
+from langchain.chat_models import ChatOpenAI
+from dotenv import load_dotenv
+
+# Load api key
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 # Configure run
-MODEL_NAME = 'gpt-3.5-turbo'
-CHAIN_NAME = 'keyphrases_explain'
+MODEL_NAME = 'gpt-4-1106-preview'
+CHAIN_NAME = 'base_explain'
 DATA = './../data/video/preprocessed_movies.json'
 
-SAMPLE_SIZE = 2000
+SAMPLE_SIZE = 500
 MAX_THREADS = 4
 
 output_path = f"../results/{MODEL_NAME}/output"
 metrics_path = f"../results/{MODEL_NAME}/eval"
-
-opai_api_key = "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"
 
 # Retrieve user data
 users = extract_rows(SAMPLE_SIZE, DATA)
 print(f"Extracted {len(users)} rows ...")
 
 # Generate chain
-model = ChatOpenAI(model_name=MODEL_NAME, openai_api_key=opai_api_key, temperature=0)
+model = ChatOpenAI(model_name=MODEL_NAME, openai_api_key=openai_api_key, temperature=0)
 chain = openai_chains.get_chain(CHAIN_NAME, model)
-
-# Initialize empty lists to store results
-pred = []
-truth = []
-title = []
 
 # Define a function to be run in each thread
 def process_user(user):
-    sleep(.1)
+    sleep(1)
     try:
         prefs = format_preferences(user)
 
@@ -45,8 +42,9 @@ def process_user(user):
         response = chain.invoke(prefs)
         prediction = json.loads(response.additional_kwargs['function_call']['arguments'])
         sleep(.2)
+        print(prediction['recommend'], end='')
         return {
-            'pred': prediction['reccomend'],
+            'pred': prediction['recommend'],
             'truth': prefs['truth'],
             'title': prefs['target'],
             'explanation': response.additional_kwargs['function_call']['arguments'],
@@ -84,7 +82,9 @@ with open(csv_path, 'w', newline='') as csvfile:
 
         
 # Evaluate results
-f1, recall, precision, roc_auc = evaluate(results)        
+pred = [result['pred'] for result in results]
+truth = [result['truth'] for result in results]
+f1, recall, precision, roc_auc = evaluate(pred, truth)           
 
 # Save metrics to a separate CSV file
 with open(metrics_csv_path, 'w', newline='') as metrics_csvfile:
